@@ -18,7 +18,7 @@ public class Param implements Serializable{
 
     private String name;
 
-    private String age;
+     private String age;
 
     private String sex;
 

@@ -6,15 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.HistoryService;
 import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricVariableInstance;
+import org.activiti.engine.impl.persistence.entity.AttachmentEntity;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
-import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.Task;
 import org.apache.commons.io.FileUtils;
@@ -26,82 +29,54 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.alibaba.fastjson.JSONObject;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ActivitiApp.class)
-public class ActivitiTestDemo5 {
+public class TrainTest {
 
     @Autowired
     private ProcessEngine processEngine;
 
-    // 部署流程
-    @Test
-    public void deploy() {
-        // 获取部署相关service，这些都是activiti封装好的api接口，还有很多，下面也会用到很多
-        Deployment deployment = processEngine.getRepositoryService()
-                // 创建部署
-                .createDeployment()
-                // 加载流程图资源文件
-                .addClasspathResource("processes/demo5.bpmn")
-                // 加载流程图片
-                .addClasspathResource("processes/demo5.png")
-                // 流程名称
-                .name("并行审批-角色")
-                // 部署流程
-                .deploy();
-        System.out.println("流程部署的ID: " + deployment.getId());
-        System.out.println("流程部署的Name: " + deployment.getName());
-    }
+    @Autowired
+    private TaskService taskService;
+    @Autowired
+    private RuntimeService runtimeService;
+    @Autowired
+    private HistoryService historyService;
+    @Autowired
+    private RepositoryService repositoryService;
+
 
     // 开始流程
     @Test
     public void startByProcessInstanceByKey() {
 
+        // 开启流程
         Map<String, Object> variables = new HashMap<String, Object>();
-        variables.put("inputUser", "2344444444444"); // 放入的value会与act_id_user中的 ID_ 对应
-        variables.put("bianliang", "train_1"); // 放入的value会与act_id_user中的 ID_ 对应
+        variables.put("userId", "111111111111");
+        variables.put("username", "张三");
+        variables.put("subject", "Java基础");
+        ProcessInstance procInst = runtimeService.startProcessInstanceByKey("train", variables);
 
-        // 启动流程，指定是哪个bpmn文件对应的流程
-        ProcessInstance pi = processEngine.getRuntimeService()
-                // 定义流程表的KEY字段值,key值是我们前面定义好的key，可在act_re_procdef表中的key_字段中找到，
-                .startProcessInstanceByKey("并行审批-角色", variables);
-        System.out.println(pi.getId());
-        System.out.println(pi.getProcessDefinitionId());
-
-        processEngine.getRuntimeService()//
-                .setProcessInstanceName(pi.getProcessInstanceId(), "aaasssddd");
-
-    }
-
-    // 开始流程
-    @Test
-    public void startByProcessInstanceByKey2() {
-
-        Map<String, Object> variables = new HashMap<String, Object>();
-        variables.put("userId", "444444"); // 放入的value会与act_id_user中的 ID_ 对应
-        variables.put("subject", "java");
-
-        // 启动流程，指定是哪个bpmn文件对应的流程
-        ProcessInstance pi = processEngine.getRuntimeService()
-                .startProcessInstanceByKey("培训流程", variables);
-        System.out.println(pi.getId());
-        System.out.println(pi.getProcessDefinitionId());
-
-        Task task = processEngine.getTaskService()//
-                .createTaskQuery()//
-                .processInstanceId(pi.getProcessInstanceId())//
+        // 根据procInstId查询进行中的task
+        Task task = taskService.createTaskQuery()//
+                .processInstanceId(procInst.getProcessInstanceId())//
                 .singleResult();
 
-        System.out.println(task.getAssignee() + "\t" + task.getId());
+        // 申请人提交申请
+        taskService.complete(task.getId(), null);
 
     }
+
 
     // 正常执行任务
     @Test
     public void completeTaskVariablesTest3() {
-        TaskService taskService = processEngine.getTaskService();
+        processEngine.getTaskService().complete("82519"); // act_ru_task表的主键 ID_
 
-        taskService.complete("225005"); // act_ru_task表的主键 ID_
-        taskService.complete("225010"); // act_ru_task表的主键 ID_
+
+        AttachmentEntity aEntity = new AttachmentEntity();
 
     }
 
@@ -109,16 +84,31 @@ public class ActivitiTestDemo5 {
     @Test
     public void completeTaskVariablesTest2() {
         TaskService taskService = processEngine.getTaskService();
-        taskService.addComment("192513", "190001", "train_1_190001", "I will be back");
-        taskService.complete("192513");
+
+        JSONObject json = new JSONObject();
+        json.put("name", "Tom");
+        json.put("age", "11");
+
+        taskService.setVariables("7508", json);
+
+        taskService.complete("7508"); // act_ru_task表的主键 ID_
     }
 
     // 条件执行任务
     @Test
-    public void completeTaskVariablesTest() {
+    public void completeByCondition1() {
         Map<String, Object> variables = new HashMap<String, Object>();
-        variables.put("days", 5);
-        processEngine.getTaskService().complete("30005", variables); // act_ru_task表的主键 ID_
+        variables.put("pass", true);
+        processEngine.getTaskService().complete("30005", variables);
+
+    }
+
+    // 条件执行任务
+    @Test
+    public void completeByCondition2() {
+        Map<String, Object> variables = new HashMap<String, Object>();
+        variables.put("pass", "dsds");
+        processEngine.getTaskService().complete("110010", variables);
     }
 
     /**
@@ -127,20 +117,25 @@ public class ActivitiTestDemo5 {
     @Test
     public void getVariableValues() {
         TaskService taskService = processEngine.getTaskService();// 获取任务
-        List<Comment> comments = taskService.getProcessInstanceComments("190001", "train_1_190001");
-        for (Comment co : comments) {
-            System.out.println(co.getFullMessage() + "\t" + co.getProcessInstanceId() + "\t" + co.getId());
-        }
+        String name = (String) taskService.getVariable("75019", "subject");// 获取请假天数
+        String age = (String) taskService.getVariable("77506", "subject");// 请假原因
 
+        System.out.println("name:" + name);
+        System.out.println("age：" + age);
     }
 
     @Test
     public void findTask() {
         TaskService taskService = processEngine.getTaskService();// 获取任务
-        Task result = taskService.createTaskQuery().processDefinitionName("并行审批-角色").singleResult();
-        // Task result = taskService.createTaskQuery().processDefinitionId("培训流程").singleResult();
-        System.out.println(result.getName());
-        System.out.println(result.getProcessInstanceId());
+
+        List<Task> list = taskService.createTaskQuery().taskAssignee("a").listPage(0, 10);
+        for (Task task : list) {
+            System.out.println(task.getId());
+            System.out.println(task.getName());
+            System.out.println(task.getAssignee());
+            System.out.println(task.getOwner());
+            System.out.println("==============");
+        }
     }
 
     // 获取流程图片
@@ -186,7 +181,9 @@ public class ActivitiTestDemo5 {
     // 删除部署的某个流程
     @Test
     public void deleteDeployment() {
-        processEngine.getRepositoryService().deleteDeployment("207501", true);
+        processEngine.getRepositoryService()//
+                // .deleteDeployment(deploymentId) //只能删除没有启动的流程
+                .deleteDeployment("95001", true); // 级联删除启动的流程
     }
 
     // 查询流程表
