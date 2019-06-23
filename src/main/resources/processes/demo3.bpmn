@@ -3,24 +3,27 @@
   <process id="demo3" name="demo3" isExecutable="true">
     <startEvent id="startevent1" name="Start"></startEvent>
     <sequenceFlow id="flow1" sourceRef="startevent1" targetRef="usertask3"></sequenceFlow>
-    <userTask id="usertask3" name="流程1" activiti:assignee="#{userId}"></userTask>
-    <userTask id="usertask4" name="流程2" activiti:assignee="#{userId}"></userTask>
+    <userTask id="usertask3" name="first">
+      <extensionElements>
+        <activiti:taskListener event="create" delegateExpression="${myTaskListener}"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
+    <userTask id="usertask4" name="second">
+      <extensionElements>
+        <activiti:taskListener event="create" delegateExpression="${myTaskListener}"></activiti:taskListener>
+      </extensionElements>
+    </userTask>
     <sequenceFlow id="flow2" name="pass == 1" sourceRef="usertask3" targetRef="usertask4">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass == 1}]]></conditionExpression>
     </sequenceFlow>
-    <endEvent id="success" name="End">
-      <extensionElements>
-        <activiti:executionListener event="success" class="com.yucong.service.ActivitiMessageListener"></activiti:executionListener>
-      </extensionElements>
-    </endEvent>
-    <sequenceFlow id="flow3" sourceRef="usertask4" targetRef="success"></sequenceFlow>
+    <endEvent id="success" name="End"></endEvent>
+    <sequenceFlow id="flow3" name="pass == 3" sourceRef="usertask4" targetRef="success">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass == 3}]]></conditionExpression>
+    </sequenceFlow>
     <sequenceFlow id="flow4" name="pass == 2" sourceRef="usertask3" targetRef="refuse">
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${pass == 2}]]></conditionExpression>
     </sequenceFlow>
     <endEvent id="refuse" name="End">
-      <extensionElements>
-        <activiti:executionListener event="refuse" class="com.yucong.service.ActivitiMessageListener"></activiti:executionListener>
-      </extensionElements>
       <terminateEventDefinition></terminateEventDefinition>
     </endEvent>
   </process>
@@ -36,10 +39,10 @@
         <omgdc:Bounds height="55.0" width="105.0" x="374.0" y="100.0"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="success" id="BPMNShape_success">
-        <omgdc:Bounds height="35.0" width="35.0" x="540.0" y="110.0"></omgdc:Bounds>
+        <omgdc:Bounds height="35.0" width="35.0" x="610.0" y="110.0"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="refuse" id="BPMNShape_refuse">
-        <omgdc:Bounds height="35.0" width="35.0" x="179.0" y="260.0"></omgdc:Bounds>
+        <omgdc:Bounds height="35.0" width="35.0" x="179.0" y="190.0"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
         <omgdi:waypoint x="79.0" y="127.0"></omgdi:waypoint>
@@ -49,18 +52,21 @@
         <omgdi:waypoint x="249.0" y="127.0"></omgdi:waypoint>
         <omgdi:waypoint x="374.0" y="127.0"></omgdi:waypoint>
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="14.0" width="100.0" x="261.0" y="144.0"></omgdc:Bounds>
+          <omgdc:Bounds height="14.0" width="48.0" x="279.0" y="131.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
         <omgdi:waypoint x="479.0" y="127.0"></omgdi:waypoint>
-        <omgdi:waypoint x="540.0" y="127.0"></omgdi:waypoint>
+        <omgdi:waypoint x="610.0" y="127.0"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="14.0" width="100.0" x="479.0" y="127.0"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
         <omgdi:waypoint x="196.0" y="155.0"></omgdi:waypoint>
-        <omgdi:waypoint x="196.0" y="260.0"></omgdi:waypoint>
+        <omgdi:waypoint x="196.0" y="190.0"></omgdi:waypoint>
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="14.0" width="100.0" x="132.0" y="210.0"></omgdc:Bounds>
+          <omgdc:Bounds height="14.0" width="48.0" x="144.0" y="169.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
