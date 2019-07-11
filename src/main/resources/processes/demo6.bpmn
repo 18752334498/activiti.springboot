@@ -10,8 +10,8 @@
     <sequenceFlow id="flow3" sourceRef="usertask2" targetRef="usertask3"></sequenceFlow>
     <userTask id="usertask4" name="培训" activiti:assignee="#{userId}"></userTask>
     <sequenceFlow id="flow4" sourceRef="usertask3" targetRef="usertask4"></sequenceFlow>
-    <endEvent id="endevent1" name="End"></endEvent>
-    <sequenceFlow id="flow5" sourceRef="usertask4" targetRef="endevent1"></sequenceFlow>
+    <endEvent id="success" name="End"></endEvent>
+    <sequenceFlow id="flow5" sourceRef="usertask4" targetRef="success"></sequenceFlow>
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_培训流程">
     <bpmndi:BPMNPlane bpmnElement="培训流程" id="BPMNPlane_培训流程">
@@ -30,7 +30,7 @@
       <bpmndi:BPMNShape bpmnElement="usertask4" id="BPMNShape_usertask4">
         <omgdc:Bounds height="55.0" width="105.0" x="120.0" y="260.0"></omgdc:Bounds>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="endevent1" id="BPMNShape_endevent1">
+      <bpmndi:BPMNShape bpmnElement="success" id="BPMNShape_success">
         <omgdc:Bounds height="35.0" width="35.0" x="40.0" y="270.0"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
